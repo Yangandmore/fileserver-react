@@ -2,7 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import 'element-theme-default';
 import './index.css';
-import Main from './container';
+import { Main } from './container';
 import reportWebVitals from './reportWebVitals';
 import configureStore from './store';
 import { Provider } from 'react-redux';

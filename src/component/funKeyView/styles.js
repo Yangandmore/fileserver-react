@@ -1,10 +1,12 @@
 const styles = {
-  content: {
+  container: {
+    height: 64,
+  },
+  btnContainer: {
+    height: 64,
     display: 'flex',
-    flexDirection: 'column',
     alignItems: 'center',
-    padding: 32,
+    paddingLeft: 32,
   },
 };
-
 export default styles;
