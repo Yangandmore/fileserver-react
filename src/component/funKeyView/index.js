@@ -7,40 +7,13 @@ import { mainAction } from '../../redux';
 class FunKeyView extends React.Component {
   static propTypes = {
     dispatch: PropTypes.func.isRequired,
-    clickTreeNode: PropTypes.object.isRequired,
+    loadState: PropTypes.object.isRequired,
     clickTableNode: PropTypes.array.isRequired,
   };
 
   constructor(props) {
     super(props);
-    this.state = {
-      hasTreeNode: false,
-      treeName: '',
-      tables: [],
-    };
-  }
-
-  static getDerivedStateFromProps(nextProps, prevState) {
-    let res = {};
-    if (nextProps.clickTreeNode && nextProps.clickTreeNode.files) {
-      if (nextProps.clickTreeNode.fileName !== prevState.treeName) {
-        res = Object.assign({}, res, { treeName: prevState.treeName });
-      }
-      res = Object.assign({}, res, { hasTreeNode: true });
-    } else {
-      res = Object.assign({}, res, { hasTreeNode: false, treeName: '' });
-    }
-    if (nextProps.clickTableNode) {
-      if (
-        JSON.stringify(prevState.tables) !==
-        JSON.stringify(nextProps.clickTableNode)
-      ) {
-        res = Object.assign({}, res, { tables: nextProps.clickTableNode });
-      }
-    } else {
-      res = Object.assign({}, res, { tables: [] });
-    }
-    return res;
+    this.state = {};
   }
 
   addFile = () => {
@@ -52,10 +25,10 @@ class FunKeyView extends React.Component {
   };
 
   downloadFile = () => {
-    const { dispatch } = this.props;
-    const { tables } = this.state;
+    const { clickTableNode, dispatch } = this.props;
+    const {} = this.props;
     const data = [];
-    for (const table of tables) {
+    for (const table of clickTableNode) {
       data.push({ fileName: table.fileName });
     }
     dispatch(mainAction.actionDownloadZip(data));
@@ -64,29 +37,34 @@ class FunKeyView extends React.Component {
   onUploadFile = (e) => {
     const file = e.target.files[0];
     this.props.dispatch(mainAction.actionUploadFile({ file: file }));
+    e.target.value = '';
   };
 
   onUpdateFile = (e) => {
-    const { tables } = this.state;
+    const { clickTableNode, dispatch } = this.props;
     const file = e.target.files[0];
-    this.props.dispatch(
-      mainAction.actionUpdateFile({ file: file, fileName: tables[0].fileName }),
+    dispatch(
+      mainAction.actionUpdateFile({
+        file: file,
+        fileName: clickTableNode[0].fileName,
+      }),
     );
+    e.target.value = '';
   };
 
   deleteFile = () => {
-    const { tables } = this.state;
+    const { clickTableNode, dispatch } = this.props;
     const data = [];
-    for (const table of tables) {
+    for (const table of clickTableNode) {
       data.push({ fileName: table.fileName });
     }
-    this.props.dispatch(mainAction.actionDeleteFiles(data));
+    dispatch(mainAction.actionDeleteFiles(data));
   };
 
   render() {
-    const { hasTreeNode, tables } = this.state;
-    const hasTableFiles = tables.length === 0 ? false : true;
-    const hasOneFile = tables.length === 1 ? true : false;
+    const { loadState, clickTableNode } = this.props;
+    const hasTableFiles = clickTableNode.length === 0 ? false : true;
+    const hasOneFile = clickTableNode.length === 1 ? true : false;
     return (
       <Layout.Row style={styles.container}>
         <Layout.Col span="8">
@@ -95,17 +73,21 @@ class FunKeyView extends React.Component {
               type="file"
               name="file"
               onChange={this.onUploadFile}
-              style={{ display: 'none' }}
+              style={styles.inputStyle}
               ref={(refs) => (this.inputUpload = refs)}
             />
             <input
               type="file"
               name="file"
               onChange={this.onUpdateFile}
-              style={{ display: 'none' }}
+              style={styles.inputStyle}
               ref={(refs) => (this.inputUpdate = refs)}
             />
-            <Button type="info" icon="plus" onClick={this.addFile}>
+            <Button
+              type="info"
+              icon="plus"
+              loading={loadState.loadUploadFile}
+              onClick={this.addFile}>
               新增文件
             </Button>
             <Button
@@ -124,11 +106,12 @@ class FunKeyView extends React.Component {
             </Button>
           </div>
         </Layout.Col>
-        <Layout.Col span="16">
+        <Layout.Col span="8">
           <div style={styles.btnContainer}>
             <Button
               type="danger"
               icon="delete"
+              loading={loadState.loadDeleteFiles}
               disabled={!hasTableFiles}
               onClick={this.deleteFile}>
               删除文件

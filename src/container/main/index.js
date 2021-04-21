@@ -1,7 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
-import { Layout, Message } from 'element-react';
+import { fromJS } from 'immutable';
+import { Layout, Message, Loading } from 'element-react';
 import styles from './styles';
 import { Header, Tables, Trees, FunKeyView } from '../../component';
 import { mainAction, mainSelect } from '../../redux';
@@ -13,9 +14,13 @@ class Main extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
+      fullLoading: false,
       loadState: {
         loadTree: false,
         loadUploadFile: false,
+        loadDeleteFiles: false,
+        loadDeleteDir: false,
+        loadUpdateFile: false,
       },
     };
   }
@@ -27,11 +32,20 @@ class Main extends React.Component {
 
   static getDerivedStateFromProps(nextProps, prevState) {
     const { loadState } = prevState;
-    const { loadTree, loadUploadFile } = nextProps;
-    let res = {};
+    const {
+      loadTree,
+      loadUploadFile,
+      loadDeleteFiles,
+      loadDeleteDir,
+      loadUpdateFile,
+    } = nextProps;
+    let res = fromJS(prevState);
     if (loadState.loadTree !== loadTree.isFetching) {
-      res = Object.assign({}, res, {
-        loadState: { loadTree: loadTree.isFetching },
+      res = res.updateIn(['loadState', 'loadTree'], () => {
+        return loadTree.isFetching;
+      });
+      res = res.update('fullLoading', () => {
+        return loadTree.isFetching;
       });
       if (loadState.loadTree && !loadTree.isFetching) {
         if (loadTree.error) {
@@ -42,8 +56,8 @@ class Main extends React.Component {
       }
     }
     if (loadState.loadUploadFile !== loadUploadFile.isFetching) {
-      res = Object.assign({}, res, {
-        loadState: { loadUploadFile: loadUploadFile.isFetching },
+      res = res.updateIn(['loadState', 'loadUploadFile'], () => {
+        return loadUploadFile.isFetching;
       });
       if (loadState.loadUploadFile && !loadUploadFile.isFetching) {
         if (loadUploadFile.error) {
@@ -53,11 +67,62 @@ class Main extends React.Component {
         }
       }
     }
-    return res;
+    if (loadState.loadDeleteFiles !== loadDeleteFiles.isFetching) {
+      res = res.updateIn(['loadState', 'loadDeleteFiles'], () => {
+        return loadDeleteFiles.isFetching;
+      });
+      if (loadState.loadDeleteFiles && !loadDeleteFiles.isFetching) {
+        if (loadDeleteFiles.error) {
+          Message.error(loadDeleteFiles.error.errmsg);
+        } else {
+          Message.success(loadDeleteFiles.msg);
+        }
+      }
+    }
+    if (loadState.loadDeleteDir !== loadDeleteDir.isFetching) {
+      res = res.updateIn(['loadState', 'loadDeleteDir'], () => {
+        return loadDeleteDir.isFetching;
+      });
+      if (loadState.loadDeleteDir && !loadDeleteDir.isFetching) {
+        if (loadDeleteDir.error) {
+          Message.error(loadDeleteDir.error.errmsg);
+        } else {
+          Message.success(loadDeleteDir.msg);
+        }
+      }
+    }
+    return res.toJS();
+  }
+
+  getSnapshotBeforeUpdate(prevProps, prevState) {
+    const { loadState } = this.state;
+    const {
+      loadUploadFile,
+      loadDeleteFiles,
+      loadDeleteDir,
+      loadUpdateFile,
+    } = prevProps;
+    if (
+      (!loadState.loadUploadFile && loadUploadFile.isFetching) ||
+      (!loadState.loadDeleteFiles && loadDeleteFiles.isFetching) ||
+      (!loadState.loadDeleteDir && loadDeleteDir.isFetching) ||
+      (!loadState.loadUpdateFile && loadUpdateFile.isFetching)
+    ) {
+      return 1;
+    }
+    return null;
+  }
+
+  componentDidUpdate(prevProps, prevState, data) {
+    if (data === 1) {
+      // 列表接口
+      this.props.dispatch(mainAction.actionListTree());
+    }
   }
 
   render() {
     const { dispatch, fileTree, clickTreeNode, clickTableNode } = this.props;
+    const { fullLoading, loadState } = this.state;
     return (
       <div>
         <Header />
@@ -68,12 +133,18 @@ class Main extends React.Component {
           <Layout.Col span="18">
             <FunKeyView
               dispatch={dispatch}
+              loadState={loadState}
               clickTreeNode={clickTreeNode}
               clickTableNode={clickTableNode}
             />
-            <Tables dispatch={dispatch} clickTreeNode={clickTreeNode} />
+            <Tables
+              dispatch={dispatch}
+              fileTree={fileTree}
+              clickTreeNode={clickTreeNode}
+            />
           </Layout.Col>
         </Layout.Row>
+        {fullLoading && <Loading fullscreen={true} />}
       </div>
     );
   }
@@ -83,6 +154,9 @@ const mapStateToProps = (state) => ({
   fileTree: mainSelect.fileTreeSelect(state),
   loadTree: mainSelect.loadTreeSelect(state),
   loadUploadFile: mainSelect.loadUploadFileSelect(state),
+  loadDeleteFiles: mainSelect.loadDeleteFilesSelect(state),
+  loadDeleteDir: mainSelect.loadDeleteDirSelect(state),
+  loadUpdateFile: mainSelect.loadUpdateFileSelect(state),
   clickTreeNode: mainSelect.clickTreeNodeSelect(state),
   clickTableNode: mainSelect.clickTableNodeSelect(state),
 });

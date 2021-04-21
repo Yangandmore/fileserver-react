@@ -3,7 +3,7 @@ import {
   createAction,
   createReducer,
 } from 'redux-act-reducer';
-import { fromJS, Map, List } from 'immutable';
+import { Map } from 'immutable';
 import { createSelector } from 'reselect';
 import {
   getFileTreeApi,
@@ -17,15 +17,27 @@ import {
   downloadZipApi,
 } from './api';
 
-const defaultState = fromJS({
-  fileTree: List(),
-  clickTreeNode: Map(),
-  clickTableNode: List(),
+const defaultState = Map({
+  fileTree: [],
+  clickTreeNode: {},
+  clickTableNode: [],
   loadTree: {
     isFetching: false,
     error: undefined,
   },
   loadUploadFile: {
+    isFetching: false,
+    error: undefined,
+  },
+  loadDeleteFiles: {
+    isFetching: false,
+    error: undefined,
+  },
+  loadUpdateFile: {
+    isFetching: false,
+    error: undefined,
+  },
+  loadDeleteDir: {
     isFetching: false,
     error: undefined,
   },
@@ -64,19 +76,28 @@ mainAction.actionUpdateFile = createActionAsync(UPDATE_FILE, updateFileApi);
 const select = (state) => state.get('main');
 const mainSelect = {};
 mainSelect.loadTreeSelect = createSelector(select, (state) => {
-  return state.get('loadTree').toJS();
+  return state.get('loadTree');
 });
 mainSelect.loadUploadFileSelect = createSelector(select, (state) => {
-  return state.get('loadUploadFile').toJS();
+  return state.get('loadUploadFile');
+});
+mainSelect.loadDeleteFilesSelect = createSelector(select, (state) => {
+  return state.get('loadDeleteFiles');
+});
+mainSelect.loadDeleteDirSelect = createSelector(select, (state) => {
+  return state.get('loadDeleteDir');
+});
+mainSelect.loadUpdateFileSelect = createSelector(select, (state) => {
+  return state.get('loadUpdateFile');
 });
 mainSelect.fileTreeSelect = createSelector(select, (state) => {
-  return state.get('fileTree').toJS();
+  return state.get('fileTree');
 });
 mainSelect.clickTreeNodeSelect = createSelector(select, (state) => {
-  return state.get('clickTreeNode').toJS();
+  return state.get('clickTreeNode');
 });
 mainSelect.clickTableNodeSelect = createSelector(select, (state) => {
-  return state.get('clickTableNode').toJS();
+  return state.get('clickTableNode');
 });
 
 const mainReducer = createReducer(
@@ -84,70 +105,59 @@ const mainReducer = createReducer(
     [LIST_TREE](state, action) {
       return {
         REQUEST() {
-          return state.merge(
-            fromJS({
-              fileTree: List(),
-              loadTree: {
-                isFetching: true,
-                error: undefined,
-              },
-            }),
-          );
+          return state.merge({
+            fileTree: [],
+            clickTableNode: [],
+            loadTree: {
+              isFetching: true,
+              error: undefined,
+            },
+          });
         },
         SUCCESS() {
-          return state.merge(
-            fromJS({
-              fileTree: action.res.body.data,
-              loadTree: {
-                isFetching: false,
-                msg: action.res.body.msg,
-              },
-            }),
-          );
+          return state.merge({
+            fileTree: action.res.body.data,
+            loadTree: {
+              isFetching: false,
+              msg: action.res.body.msg,
+            },
+          });
         },
         FAILURE() {
-          return state.merge(
-            fromJS({
-              loadTree: {
-                isFetching: false,
-                error: action.err,
-              },
-            }),
-          );
+          return state.merge({
+            loadTree: {
+              isFetching: false,
+              error: action.err,
+            },
+          });
         },
       };
     },
     [UPLOAD_FILE](state, action) {
       return {
         REQUEST() {
-          return state.merge(
-            fromJS({
-              loadUploadFile: {
-                isFetching: true,
-                error: undefined,
-              },
-            }),
-          );
+          return state.merge({
+            loadUploadFile: {
+              isFetching: true,
+              error: undefined,
+            },
+          });
         },
         SUCCESS() {
-          return state.merge(
-            fromJS({
-              loadUploadFile: {
-                isFetching: false,
-                msg: action.res.body.msg,
-              },
-            }),
-          );
+          return state.merge({
+            loadUploadFile: {
+              isFetching: false,
+              msg: action.res.body.msg,
+            },
+          });
         },
         FAILURE() {
-          return state.merge(
-            fromJS({
-              loadUploadFile: {
-                isFetching: false,
-                error: action.err,
-              },
-            }),
-          );
+          return state.merge({
+            loadUploadFile: {
+              isFetching: false,
+              error: action.err,
+            },
+          });
         },
       };
     },
@@ -167,42 +177,98 @@ const mainReducer = createReducer(
     [DELETE_FILES](state, action) {
       return {
         REQUEST() {
-          return state.merge({});
+          return state.merge({
+            loadDeleteFiles: {
+              isFetching: true,
+              error: undefined,
+            },
+          });
         },
         SUCCESS() {
-          return state.merge({});
+          return state.merge({
+            loadDeleteFiles: {
+              isFetching: false,
+              msg: action.res.body.msg,
+            },
+          });
         },
         FAILURE() {
-          return state.merge({});
+          return state.merge({
+            loadDeleteFiles: {
+              isFetching: false,
+              error: action.err,
+            },
+          });
         },
       };
     },
     [DELETE_DIR](state, action) {
       return {
         REQUEST() {
-          return state.merge({});
+          return state.merge({
+            clickTreeNode: {},
+            clickTableNode: [],
+            loadDeleteDir: {
+              isFetching: true,
+              error: undefined,
+            },
+          });
         },
         SUCCESS() {
-          return state.merge({});
+          return state.merge({
+            loadDeleteDir: {
+              isFetching: false,
+              msg: action.res.body.msg,
+            },
+          });
         },
         FAILURE() {
-          return state.merge({});
+          return state.merge({
+            loadDeleteDir: {
+              isFetching: false,
+              error: action.err,
+            },
+          });
+        },
+      };
+    },
+    [UPDATE_FILE](state, action) {
+      return {
+        REQUEST() {
+          return state.merge({
+            loadUpdateFile: {
+              isFetching: true,
+              error: undefined,
+            },
+          });
+        },
+        SUCCESS() {
+          return state.merge({
+            loadUpdateFile: {
+              isFetching: false,
+              msg: action.res.body.msg,
+            },
+          });
+        },
+        FAILURE() {
+          return state.merge({
+            loadUpdateFile: {
+              isFetching: false,
+              error: action.err,
+            },
+          });
         },
       };
     },
     [CLICK_TREE_NODE](state, action) {
-      return state.merge(
-        fromJS({
-          clickTreeNode: action.nodeTreeData,
-        }),
-      );
+      return state.merge({
+        clickTreeNode: action.nodeTreeData,
+      });
     },
     [CLICK_TABLE_NODE](state, action) {
-      return state.merge(
-        fromJS({
-          clickTableNode: action.nodeTableData,
-        }),
-      );
+      return state.merge({
+        clickTableNode: action.nodeTableData,
+      });
     },
   },
   defaultState,

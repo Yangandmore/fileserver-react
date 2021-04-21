@@ -12,28 +12,11 @@ class Trees extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      fileTree: [],
       options: {
         label: 'fileName',
         children: 'files',
       },
     };
-  }
-
-  static getDerivedStateFromProps(nextProps, prevState) {
-    let res = {};
-
-    if (nextProps.fileTree) {
-      if (
-        JSON.stringify(prevState.fileTree) !==
-        JSON.stringify(nextProps.fileTree)
-      ) {
-        res = Object.assign({}, res, { fileTree: nextProps.fileTree });
-      }
-    } else if (prevState.fileTree.length !== 0) {
-      res = Object.assign({}, res, { fileTree: [] });
-    }
-    return res;
   }
 
   clickDeleteDir = (fileName) => {
@@ -47,7 +30,7 @@ class Trees extends React.Component {
         {data.files != null ? (
           <span style={styles.itemLength}>
             <Popover
-              placement="bottom"
+              placement="left"
               width="150"
               trigger="hover"
               content={
@@ -75,7 +58,8 @@ class Trees extends React.Component {
   };
 
   render() {
-    const { fileTree, options } = this.state;
+    const { fileTree } = this.props;
+    const { options } = this.state;
     const tableHeight = window.innerHeight - 64 - 2;
     return (
       <div style={{ height: tableHeight }}>
@@ -91,20 +75,13 @@ class Trees extends React.Component {
           highlightCurrent={true}
           renderContent={(...args) => this.renderContent(...args)}
           options={options}
-          onNodeClicked={(data) => {
+          onNodeClicked={(data, node) => {
             let d = {};
             if (data.files) {
               // 文件夹
               d = { fileName: data.fileName, files: data.files };
-            } else {
-              // 文件
-              d = {
-                fileName: data.fileName,
-                fileSize: data.fileSize,
-                filePath: data.filePath,
-              };
+              this.nodeClick(d);
             }
-            this.nodeClick(d);
           }}
           filterNodeMethod={(value, data) => {
             if (!value) {

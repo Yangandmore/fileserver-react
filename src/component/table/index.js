@@ -8,11 +8,11 @@ class Tables extends React.Component {
   static propTypes = {
     dispatch: PropTypes.func.isRequired,
     clickTreeNode: PropTypes.object.isRequired,
+    fileTree: PropTypes.array.isRequired,
   };
   constructor(props) {
     super(props);
     this.state = {
-      files: [],
       columns: [
         {
           type: 'selection',
@@ -65,21 +65,6 @@ class Tables extends React.Component {
     };
   }
 
-  static getDerivedStateFromProps(nextProps, prevState) {
-    let res = {};
-    if (nextProps.clickTreeNode.files) {
-      // 文件夹
-      if (
-        JSON.stringify(prevState.files) !==
-        JSON.stringify(nextProps.clickTreeNode.files)
-      ) {
-        res = Object.assign({}, res, { files: nextProps.clickTreeNode.files });
-      }
-    }
-
-    return res;
-  }
-
   downloadFile = (data) => {
     this.props.dispatch(
       mainAction.actionDownloadFile({
@@ -101,16 +86,24 @@ class Tables extends React.Component {
   };
 
   render() {
-    const { files, columns } = this.state;
+    const { fileTree, clickTreeNode } = this.props;
+    const { columns } = this.state;
     const tableHeight = window.innerHeight - 64 - 64;
-    // 判断是文件还是文件夹
+    let fileNode = [];
+    if (clickTreeNode.fileName) {
+      for (const file of fileTree) {
+        if (file.fileName === clickTreeNode.fileName) {
+          fileNode = file.files;
+        }
+      }
+    }
     return (
       <div>
         <Table
           style={styles.tableContainer}
           border={true}
           columns={columns}
-          data={files}
+          data={fileNode}
           height={tableHeight}
           stripe={true}
           highlightCurrentRow={true}

@@ -8,5 +8,8 @@ const styles = {
     alignItems: 'center',
     paddingLeft: 32,
   },
+  inputStyle: {
+    display: 'none',
+  },
 };
 export default styles;
