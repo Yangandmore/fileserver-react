@@ -47,6 +47,17 @@ const uploadFilesApi = async (param, dispatch, getState) => {
 // TODO 修改覆盖文件
 const updateFileApi = async (param, dispatch, getState) => {
   try {
+    const res = await request(
+      {
+        endpoint: '/updateFile',
+        method: 'PUT',
+        type: 'form',
+        body: param,
+      },
+      dispatch,
+      getState,
+    );
+    return Promise.resolve(res);
   } catch (err) {
     return Promise.reject(err);
   }
@@ -57,8 +68,8 @@ const deleteDirApi = async (param, dispatch, getState) => {
   try {
     const res = await request(
       {
-        endpoint: '/delete/file',
-        method: 'POST',
+        endpoint: '/delete/dirs',
+        method: 'DELETE',
         body: param,
       },
       dispatch,

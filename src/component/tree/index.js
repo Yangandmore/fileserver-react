@@ -1,6 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { Tree, Input } from 'element-react';
+import { Tree, Input, Popover, Button } from 'element-react';
 import { mainAction } from '../../redux';
 import styles from './styles';
 
@@ -36,15 +36,36 @@ class Trees extends React.Component {
     return res;
   }
 
+  clickDeleteDir = (fileName) => {
+    this.props.dispatch(mainAction.actionDeleteDir({ fileName: fileName }));
+  };
+
   renderContent = (nodeModel, data, store) => {
-    return data.files != null ? (
+    return (
       <span>
         <span>{data.fileName}</span>
-        <span style={styles.itemLength}>{`${data.files.length} files`}</span>
-      </span>
-    ) : (
-      <span>
-        <span>{data.fileName}</span>
+        {data.files != null ? (
+          <span style={styles.itemLength}>
+            <Popover
+              placement="bottom"
+              width="150"
+              trigger="hover"
+              content={
+                <span>
+                  <Button
+                    style={{ width: '100%' }}
+                    type="text"
+                    onClick={() => {
+                      this.clickDeleteDir(data.fileName);
+                    }}>
+                    删除
+                  </Button>
+                </span>
+              }>
+              <Button icon="more" type="text" />
+            </Popover>
+          </span>
+        ) : null}
       </span>
     );
   };
@@ -67,7 +88,7 @@ class Trees extends React.Component {
           className="filter-tree"
           nodeKey="fileName"
           data={fileTree}
-          highlightCurrent="true"
+          highlightCurrent={true}
           renderContent={(...args) => this.renderContent(...args)}
           options={options}
           onNodeClicked={(data) => {

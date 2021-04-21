@@ -12,7 +12,12 @@ class Main extends React.Component {
   };
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      loadState: {
+        loadTree: false,
+        loadUploadFile: false,
+      },
+    };
   }
 
   componentDidMount() {
@@ -21,22 +26,34 @@ class Main extends React.Component {
   }
 
   static getDerivedStateFromProps(nextProps, prevState) {
+    const { loadState } = prevState;
+    const { loadTree, loadUploadFile } = nextProps;
     let res = {};
-
-    return res;
-  }
-
-  getSnapshotBeforeUpdate(prevProps, prevState) {
-    const { loadTree: newLoadTree } = prevProps;
-    const { loadTree } = this.props;
-    if (!loadTree.isFetching && newLoadTree.isFetching) {
-      if (this.props.loadTree.error) {
-        Message.error(this.props.loadTree.error.errmsg);
-      } else {
-        Message.success(this.props.loadTree.msg);
+    if (loadState.loadTree !== loadTree.isFetching) {
+      res = Object.assign({}, res, {
+        loadState: { loadTree: loadTree.isFetching },
+      });
+      if (loadState.loadTree && !loadTree.isFetching) {
+        if (loadTree.error) {
+          Message.error(loadTree.error.errmsg);
+        } else {
+          Message.success(loadTree.msg);
+        }
       }
     }
-    return null;
+    if (loadState.loadUploadFile !== loadUploadFile.isFetching) {
+      res = Object.assign({}, res, {
+        loadState: { loadUploadFile: loadUploadFile.isFetching },
+      });
+      if (loadState.loadUploadFile && !loadUploadFile.isFetching) {
+        if (loadUploadFile.error) {
+          Message.error(loadUploadFile.error.errmsg);
+        } else {
+          Message.success(loadUploadFile.msg);
+        }
+      }
+    }
+    return res;
   }
 
   render() {
@@ -65,6 +82,7 @@ class Main extends React.Component {
 const mapStateToProps = (state) => ({
   fileTree: mainSelect.fileTreeSelect(state),
   loadTree: mainSelect.loadTreeSelect(state),
+  loadUploadFile: mainSelect.loadUploadFileSelect(state),
   clickTreeNode: mainSelect.clickTreeNodeSelect(state),
   clickTableNode: mainSelect.clickTableNodeSelect(state),
 });

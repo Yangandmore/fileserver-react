@@ -1,7 +1,7 @@
 一个简单的支持file-server的前端react项目
 ---
 
-👉[file-server](https://github.com/Yangandmore/fileServer)
+👉[file-server](https://github.com/Yangandmore/fileServer)  
 
 ## 当前框架使用的技术
 * [x] react

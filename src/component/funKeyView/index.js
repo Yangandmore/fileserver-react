@@ -40,16 +40,15 @@ class FunKeyView extends React.Component {
     } else {
       res = Object.assign({}, res, { tables: [] });
     }
-
     return res;
   }
 
   addFile = () => {
-    this.inputRef.click();
+    this.inputUpload.click();
   };
 
   updateFile = () => {
-    const { tables } = this.state;
+    this.inputUpdate.click();
   };
 
   downloadFile = () => {
@@ -63,9 +62,16 @@ class FunKeyView extends React.Component {
   };
 
   onUploadFile = (e) => {
-    const { treeName } = this.state;
     const file = e.target.files[0];
     this.props.dispatch(mainAction.actionUploadFile({ file: file }));
+  };
+
+  onUpdateFile = (e) => {
+    const { tables } = this.state;
+    const file = e.target.files[0];
+    this.props.dispatch(
+      mainAction.actionUpdateFile({ file: file, fileName: tables[0].fileName }),
+    );
   };
 
   deleteFile = () => {
@@ -90,7 +96,14 @@ class FunKeyView extends React.Component {
               name="file"
               onChange={this.onUploadFile}
               style={{ display: 'none' }}
-              ref={(refs) => (this.inputRef = refs)}
+              ref={(refs) => (this.inputUpload = refs)}
+            />
+            <input
+              type="file"
+              name="file"
+              onChange={this.onUpdateFile}
+              style={{ display: 'none' }}
+              ref={(refs) => (this.inputUpdate = refs)}
             />
             <Button type="info" icon="plus" onClick={this.addFile}>
               新增文件

@@ -11,6 +11,7 @@ import {
   uploadFilesApi,
   updateFileApi,
   deleteDirApi,
+  deleteFileApi,
   deleteFilesApi,
   downloadFileApi,
   downloadZipApi,
@@ -24,6 +25,10 @@ const defaultState = fromJS({
     isFetching: false,
     error: undefined,
   },
+  loadUploadFile: {
+    isFetching: false,
+    error: undefined,
+  },
 });
 const prefix = 'MAIN';
 const LIST_TREE = `${prefix}_LIST_TREE`;
@@ -33,6 +38,7 @@ const UPLOAD_FILE = `${prefix}_UPLOAD_FILE`;
 const UPLOAD_FILES = `${prefix}_UPLOAD_FILES`;
 const UPDATE_FILE = `${prefix}_UPDATE_FILE`;
 const DELETE_DIR = `${prefix}_DELETE_DIR`;
+const DELETE_FILE = `${prefix}_DELETE_FILE`;
 const DELETE_FILES = `${prefix}_DELETE_FILES`;
 const DOWNLOAD_FILE = `${prefix}_DOWNLOAD_FILE`;
 const DOWNLOAD_ZIP = `${prefix}_DOWNLOAD_ZIP`;
@@ -45,18 +51,23 @@ mainAction.actionClickTableNode = createAction(
   'nodeTableData',
 );
 mainAction.actionUploadFile = createActionAsync(UPLOAD_FILE, uploadFileApi);
-mainAction.actionDeleteFile = createActionAsync();
+mainAction.actionDeleteFile = createActionAsync(DELETE_FILE, deleteFileApi);
 mainAction.actionDeleteFiles = createActionAsync(DELETE_FILES, deleteFilesApi);
+mainAction.actionDeleteDir = createActionAsync(DELETE_DIR, deleteDirApi);
 mainAction.actionDownloadFile = createActionAsync(
   DOWNLOAD_FILE,
   downloadFileApi,
 );
 mainAction.actionDownloadZip = createActionAsync(DOWNLOAD_ZIP, downloadZipApi);
+mainAction.actionUpdateFile = createActionAsync(UPDATE_FILE, updateFileApi);
 
 const select = (state) => state.get('main');
 const mainSelect = {};
 mainSelect.loadTreeSelect = createSelector(select, (state) => {
   return state.get('loadTree').toJS();
+});
+mainSelect.loadUploadFileSelect = createSelector(select, (state) => {
+  return state.get('loadUploadFile').toJS();
 });
 mainSelect.fileTreeSelect = createSelector(select, (state) => {
   return state.get('fileTree').toJS();
@@ -89,7 +100,6 @@ const mainReducer = createReducer(
               fileTree: action.res.body.data,
               loadTree: {
                 isFetching: false,
-                status: action.res.body.status,
                 msg: action.res.body.msg,
               },
             }),
@@ -110,6 +120,40 @@ const mainReducer = createReducer(
     [UPLOAD_FILE](state, action) {
       return {
         REQUEST() {
+          return state.merge(
+            fromJS({
+              loadUploadFile: {
+                isFetching: true,
+                error: undefined,
+              },
+            }),
+          );
+        },
+        SUCCESS() {
+          return state.merge(
+            fromJS({
+              loadUploadFile: {
+                isFetching: false,
+                msg: action.res.body.msg,
+              },
+            }),
+          );
+        },
+        FAILURE() {
+          return state.merge(
+            fromJS({
+              loadUploadFile: {
+                isFetching: false,
+                error: action.err,
+              },
+            }),
+          );
+        },
+      };
+    },
+    [DELETE_FILE](state, action) {
+      return {
+        REQUEST() {
           return state.merge({});
         },
         SUCCESS() {
@@ -121,6 +165,19 @@ const mainReducer = createReducer(
       };
     },
     [DELETE_FILES](state, action) {
+      return {
+        REQUEST() {
+          return state.merge({});
+        },
+        SUCCESS() {
+          return state.merge({});
+        },
+        FAILURE() {
+          return state.merge({});
+        },
+      };
+    },
+    [DELETE_DIR](state, action) {
       return {
         REQUEST() {
           return state.merge({});

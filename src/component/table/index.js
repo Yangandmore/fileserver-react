@@ -37,18 +37,26 @@ class Tables extends React.Component {
         {
           label: '操作',
           prop: 'func',
-          width: 90,
+          width: 130,
           render: (data) => {
             return (
               <span>
                 <Button
                   size="small"
                   type="info"
+                  icon="upload"
                   onClick={() => {
                     this.downloadFile(data);
-                  }}>
-                  下载
-                </Button>
+                  }}
+                />
+                <Button
+                  size="small"
+                  type="danger"
+                  icon="delete"
+                  onClick={() => {
+                    this.deleteFile(data);
+                  }}
+                />
               </span>
             );
           },
@@ -75,6 +83,14 @@ class Tables extends React.Component {
   downloadFile = (data) => {
     this.props.dispatch(
       mainAction.actionDownloadFile({
+        fileName: data.fileName,
+      }),
+    );
+  };
+
+  deleteFile = (data) => {
+    this.props.dispatch(
+      mainAction.actionDeleteFile({
         fileName: data.fileName,
       }),
     );
